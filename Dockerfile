@@ -8,7 +8,8 @@ RUN uv sync --frozen --no-dev
 COPY src/ src/
 
 # The root filesystem is read-only in Meru, so no .pyc files; the numeric user matches nuwa-app's runAsUser.
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app/src
 USER 10001
 EXPOSE 8080
-CMD [".venv/bin/uvicorn", "--app-dir", "src", "heimdall.app:app", "--host", "0.0.0.0", "--port", "8080"]
+# The Temporal worker that runs the scans, with the probes beside it (src/heimdall/main.py).
+CMD [".venv/bin/python", "-m", "heimdall.main"]

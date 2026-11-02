@@ -2,16 +2,21 @@
 
 Meru's scan worker - tells Thoth what really runs in the cluster
 
-A Meru app, made from the [Meru/nuwa-python](https://git.clockmost.com/Meru/nuwa-python) template: a FastAPI service
-with one endpoint, `GET /heartbeat` -> `ok`, to grow from.
+Every 5 minutes a Temporal Schedule starts one `ClusterScan` in Temporal namespace `heimdall`:
+
+1. **look** - lists every namespace, Deployment, StatefulSet and DaemonSet (read-only rights: Meru/meru
+   `rbac/heimdall-reads-cluster.yaml`).
+2. **report** - sends Thoth one snapshot as `k8s-scan@clockmost`: each workload as `clockmost/<namespace>/<kind>/<name>`,
+   each Meru app whose own namespace has a ready Deployment (Thoth turns it `active`; it refuses an app nobody
+   declared), and `part-of` links from a Meru app's workloads to the app.
+
+Heimdall only ever says "seen". Something it stops seeing gets a miss in Thoth; three in a row put it on Anubis's list.
+A snapshot is all or nothing: if any list fails, nothing is sent.
 
 ## Run locally
 
-```sh
-uv sync
-uv run uvicorn --app-dir src heimdall.app:app --port 8080
-curl localhost:8080/heartbeat
-```
+Needs Temporal, Thoth, the cluster and an Authentik login - in practice it runs in the cluster. The pieces run alone in
+the tests.
 
 ## Development
 
