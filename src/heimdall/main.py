@@ -23,9 +23,7 @@ async def run() -> None:
     async with httpx2.AsyncClient(timeout=30) as http, httpx2.AsyncClient(timeout=30, verify=cluster_ca) as kube:
 
         def tokens(client_id: str) -> TokenSource:
-            return TokenSource(
-                http, settings.token_url, client_id, settings.authentik_username, settings.authentik_password
-            )
+            return TokenSource(http, settings.token_url, client_id, settings.authentik_token_file)
 
         temporal_tokens = tokens(settings.temporal_client_id)
         client = await connect(settings, temporal_tokens)

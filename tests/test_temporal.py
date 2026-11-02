@@ -7,7 +7,7 @@ from heimdall.temporal import schedule
 
 
 def test_one_scan_every_five_minutes_never_piling_up() -> None:
-    s = schedule(Settings(authentik_password="x"))
+    s = schedule(Settings())
     assert [i.every for i in s.spec.intervals] == [timedelta(minutes=5)]
     assert s.policy.overlap == ScheduleOverlapPolicy.SKIP
     assert isinstance(s.action, ScheduleActionStartWorkflow)
