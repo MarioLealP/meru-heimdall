@@ -3,7 +3,6 @@
 from datetime import timedelta
 from pathlib import Path
 
-from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,10 +17,10 @@ class Settings(BaseSettings):
     task_queue: str = "heimdall"
     tls_dir: Path = Path("/var/run/meru/tls")  # tls.crt, tls.key, ca.crt (nuwa-app's certificate)
 
-    # Authentik client_credentials (blueprints/heimdall.yaml): one service account, a token per provider.
+    # Authentik client_credentials (blueprints/heimdall.yaml): the pod's workload, a token per provider.
     token_url: str = "https://auth.clockmost.com/application/o/token/"
-    authentik_username: str = "heimdall"
-    authentik_password: SecretStr
+    # its own Kubernetes token for Authentik (D104, nuwa-app authentikLogin) - no password
+    authentik_token_file: Path = Path("/var/run/meru/authentik/token")
     temporal_client_id: str = "temporal"
     thoth_client_id: str = "thoth"
     thoth_url: str = "http://thoth.thoth.svc"
