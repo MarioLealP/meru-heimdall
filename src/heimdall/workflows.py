@@ -1,5 +1,7 @@
-"""The cluster scan (D54, D102): a Temporal Schedule starts one every 5 minutes. Workflow code is replayed from
-history after a restart, so it stays deterministic - the I/O lives in the activities."""
+"""The cluster scan (D54, D102): a Temporal Schedule starts one every 5 minutes.
+
+Workflow code is replayed from history after a restart, so it stays deterministic - the I/O lives in the activities.
+"""
 
 from datetime import timedelta
 
@@ -17,8 +19,11 @@ RETRY = RetryPolicy(initial_interval=timedelta(seconds=5), maximum_attempts=4)
 
 @workflow.defn
 class ClusterScan:
+    """One look at the cluster, reported to Thoth."""
+
     @workflow.run
     async def run(self) -> dict:
+        """Look, then report; the result is Thoth's answer."""
         snap: Snapshot = await workflow.execute_activity_method(
             Activities.look, start_to_close_timeout=TIMEOUT, retry_policy=RETRY
         )

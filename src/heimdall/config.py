@@ -7,7 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="HEIMDALL_")
+    """Everything Heimdall can be told from outside, with the in-cluster defaults."""
+
+    model_config = SettingsConfigDict(env_prefix="HEIMDALL_", frozen=True)
 
     # Temporal's front door (D70): mutual TLS with the pod's pki_meru certificate + an Authentik token. Its own
     # namespace (D103): its token can't touch Shikigami's workflows in `meru`.

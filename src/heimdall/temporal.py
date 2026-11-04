@@ -26,6 +26,7 @@ SCHEDULE_ID = "cluster-scan"
 
 
 async def connect(settings: Settings, tokens: TokenSource) -> Client:
+    """Open the mTLS connection, logged in with a fresh token."""
     tls = settings.tls_dir
     return await Client.connect(
         settings.temporal_address,
@@ -42,6 +43,7 @@ async def connect(settings: Settings, tokens: TokenSource) -> Client:
 
 
 async def keep_token_fresh(client: Client, tokens: TokenSource) -> None:
+    """Swap the connection's token before it expires; runs for as long as the pod does."""
     while True:
         await asyncio.sleep(REFRESH_EVERY)
         client.api_key = await tokens.get()
