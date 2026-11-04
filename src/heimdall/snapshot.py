@@ -15,6 +15,8 @@ APP_LABEL = "meru.clockmost.com/app"
 
 
 class Item(BaseModel):
+    """One thing Thoth is told was seen."""
+
     model_config = ConfigDict(frozen=True)
 
     type: str
@@ -24,6 +26,8 @@ class Item(BaseModel):
 
 
 class End(BaseModel):
+    """One end of a relation, named by the item's type and key."""
+
     model_config = ConfigDict(frozen=True)
 
     type: str
@@ -31,6 +35,8 @@ class End(BaseModel):
 
 
 class Relation(BaseModel):
+    """A link between two items; `from` on the wire."""
+
     model_config = ConfigDict(frozen=True, populate_by_name=True, serialize_by_alias=True)
 
     type: str
@@ -40,6 +46,8 @@ class Relation(BaseModel):
 
 
 class Snapshot(BaseModel):
+    """Everything one scan saw; also the payload between the two activities."""
+
     model_config = ConfigDict(frozen=True)
 
     items: list[Item]
@@ -47,10 +55,12 @@ class Snapshot(BaseModel):
 
 
 def workload_key(cluster: str, w: Workload) -> str:
+    """Return the workload's key in Thoth."""
     return f"{cluster}/{w.namespace}/{w.kind}/{w.name}"
 
 
 def build(cluster: str, namespaces: list[Namespace], workloads: list[Workload]) -> Snapshot:
+    """Turn what was listed into the snapshot, following the rules at the top of this module."""
     app_of = {ns.name: ns.labels[APP_LABEL] for ns in namespaces if APP_LABEL in ns.labels}
     running = {
         w.namespace

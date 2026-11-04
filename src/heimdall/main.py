@@ -18,18 +18,30 @@ from heimdall.workflows import ClusterScan
 
 
 async def run() -> None:
+    """Connect, make sure the Schedule exists, then run the worker and the probes until one stops."""
     settings = Settings()  # the secret comes from the environment
     cluster_ca = ssl.create_default_context(cafile=settings.kubernetes_dir / "ca.crt")
     async with httpx2.AsyncClient(timeout=30) as http, httpx2.AsyncClient(timeout=30, verify=cluster_ca) as kube:
 
         def tokens(client_id: str) -> TokenSource:
-            return TokenSource(http, settings.token_url, client_id, settings.authentik_token_file)
+            return TokenSource(
+                http=http,
+                token_url=settings.token_url,
+                client_id=client_id,
+                token_file=settings.authentik_token_file,
+            )
 
         temporal_tokens = tokens(settings.temporal_client_id)
         client = await connect(settings, temporal_tokens)
         await ensure_schedule(client, settings)
-        cluster = Cluster(kube, settings.kubernetes_url, settings.kubernetes_dir / "token")
-        activities = Activities(cluster, settings.cluster, http, settings.thoth_url, tokens(settings.thoth_client_id))
+        cluster = Cluster(http=kube, api_url=settings.kubernetes_url, token_file=settings.kubernetes_dir / "token")
+        activities = Activities(
+            cluster=cluster,
+            cluster_name=settings.cluster,
+            http=http,
+            thoth_url=settings.thoth_url,
+            tokens=tokens(settings.thoth_client_id),
+        )
         worker = Worker(
             client,
             task_queue=settings.task_queue,
@@ -44,6 +56,7 @@ async def run() -> None:
 
 
 def main() -> None:
+    """Set up logging and run the pod's process."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
     asyncio.run(run())
 

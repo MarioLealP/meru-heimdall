@@ -46,6 +46,6 @@ async def test_a_refused_snapshot_says_why_and_sends_no_links() -> None:
         return httpx2.Response(422, json={"errors": [{"msg": "items[0] (app stray): not declared"}]})
 
     async with httpx2.AsyncClient(transport=httpx2.MockTransport(handler)) as http:
-        with pytest.raises(thoth.Refused, match="not declared"):
+        with pytest.raises(thoth.RefusedError, match="not declared"):
             await thoth.report(http, "http://thoth", "tok", "k8s-run1", "clockmost", SNAP)
     assert calls == ["/v1/scans/k8s-run1/k8s-scan/clockmost/items"]

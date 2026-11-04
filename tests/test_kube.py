@@ -10,7 +10,9 @@ from heimdall.kube import Cluster, Namespace, Workload
 def cluster(tmp_path: Path, handler) -> Cluster:
     token = tmp_path / "token"
     token.write_text("pod-token\n")
-    return Cluster(httpx2.AsyncClient(transport=httpx2.MockTransport(handler)), "https://k8s", token)
+    return Cluster(
+        http=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)), api_url="https://k8s", token_file=token
+    )
 
 
 def page(items: list[dict], cont: str | None = None) -> httpx2.Response:

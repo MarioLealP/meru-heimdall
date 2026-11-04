@@ -17,7 +17,7 @@ async def test_logs_in_with_the_pod_token_and_no_password(tmp_path: Path):
         return httpx2.Response(200, json={"access_token": f"t{len(forms)}", "expires_in": 0})
 
     async with httpx2.AsyncClient(transport=httpx2.MockTransport(handler)) as http:
-        tokens = TokenSource(http, "https://auth.test/token/", "thoth", token_file)
+        tokens = TokenSource(http=http, token_url="https://auth.test/token/", client_id="thoth", token_file=token_file)
         assert await tokens.get() == "t1"
         token_file.write_text("second\n")  # the kubelet swapped in a fresh one
         assert await tokens.get() == "t2"  # expires_in 0: used up at once
@@ -30,3 +30,20 @@ async def test_logs_in_with_the_pod_token_and_no_password(tmp_path: Path):
         "client_assertion": "first",
     }
     assert forms[1]["client_assertion"] == "second"
+
+
+async def test_a_token_with_time_left_is_kept(tmp_path: Path) -> None:
+    token_file = tmp_path / "token"
+    token_file.write_text("pod-token\n")
+    logins = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        logins.append(request)
+        return httpx2.Response(200, json={"access_token": "t1", "expires_in": 600})
+
+    async with httpx2.AsyncClient(transport=httpx2.MockTransport(handler)) as http:
+        tokens = TokenSource(http=http, token_url="https://auth.test/token/", client_id="thoth", token_file=token_file)
+        assert await tokens.get() == "t1"
+        assert await tokens.get() == "t1"
+
+    assert len(logins) == 1
