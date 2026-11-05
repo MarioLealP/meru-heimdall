@@ -56,3 +56,23 @@ def test_workloads_in_an_apps_namespaces_are_part_of_it() -> None:
 def test_a_ready_statefulset_alone_does_not_make_an_app_running() -> None:
     snap = build("clockmost", NAMESPACES, [Workload(kind="statefulset", namespace="tanuki", name="db", ready=1)])
     assert [i.type for i in snap.items] == ["workload"]
+
+
+def test_a_scheduled_cronjob_makes_an_app_running() -> None:
+    namespaces = [
+        Namespace(name="charon", labels={LABEL: "charon"}),
+        Namespace(name="paused", labels={LABEL: "paused"}),
+    ]
+    snap = build(
+        "clockmost",
+        namespaces,
+        [
+            Workload(kind="cronjob", namespace="charon", name="charon", ready=1),
+            Workload(kind="cronjob", namespace="paused", name="paused", ready=0),  # suspended: not seen as the app
+        ],
+    )
+    assert [(i.type, i.key) for i in snap.items] == [
+        ("app", "charon"),
+        ("workload", "clockmost/charon/cronjob/charon"),
+        ("workload", "clockmost/paused/cronjob/paused"),
+    ]

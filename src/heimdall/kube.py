@@ -1,4 +1,4 @@
-"""Listing the cluster (D101): namespaces and every Deployment, StatefulSet and DaemonSet.
+"""Listing the cluster (D101): namespaces and every Deployment, StatefulSet, DaemonSet and CronJob (D117).
 
 List only - that is all heimdall-reads-cluster allows (Meru/meru rbac/) - with the pod's API token, re-read each call
 (the kubelet renews it). Lists come in pages; any page that fails fails the whole look, so a scan is never sent
@@ -23,6 +23,7 @@ class _Meta(Incoming):
 
 class _Spec(Incoming):
     replicas: int | None = None
+    suspend: bool | None = None  # CronJob
 
 
 class _Status(Incoming):
@@ -55,17 +56,33 @@ class Namespace(BaseModel):
 
 
 class Workload(BaseModel):
-    """One Deployment, StatefulSet or DaemonSet and how many of its pods are ready."""
+    """One Deployment, StatefulSet, DaemonSet or CronJob and how many of its pods are ready.
+
+    A CronJob has no pod between runs, so its `ready` is 1 while it's scheduled (not suspended) and 0 when suspended -
+    whether its runs succeed is Zabbix's CronJob check (D108).
+    """
 
     model_config = ConfigDict(frozen=True)
 
-    kind: str  # deployment | statefulset | daemonset - Thoth's workload key part
+    kind: str  # deployment | statefulset | daemonset | cronjob - Thoth's workload key part
     namespace: str
     name: str
     ready: int  # pods ready
 
 
-KINDS = {"deployment": "deployments", "statefulset": "statefulsets", "daemonset": "daemonsets"}
+KINDS = {
+    "deployment": "/apis/apps/v1/deployments",
+    "statefulset": "/apis/apps/v1/statefulsets",
+    "daemonset": "/apis/apps/v1/daemonsets",
+    "cronjob": "/apis/batch/v1/cronjobs",
+}
+
+
+def _ready(kind: str, spec: _Spec, status: _Status) -> int | None:
+    """Pods ready - or, for a CronJob, 1 while it's scheduled."""
+    if kind == "cronjob":
+        return 0 if spec.suspend else 1
+    return status.number_ready if kind == "daemonset" else status.ready_replicas
 
 
 class Cluster(BaseModel):
@@ -103,10 +120,10 @@ class Cluster(BaseModel):
     async def workloads(self) -> list[Workload]:
         """List every workload of each kind in `KINDS`, in every namespace."""
         found = []
-        for kind, resource in KINDS.items():
-            for o in await self._list(f"/apis/apps/v1/{resource}"):
+        for kind, path in KINDS.items():
+            for o in await self._list(path):
                 status = o.status or _Status()
-                ready = status.number_ready if kind == "daemonset" else status.ready_replicas
+                ready = _ready(kind, o.spec or _Spec(), status)
                 found.append(
                     Workload(kind=kind, namespace=o.metadata.namespace or "", name=o.metadata.name, ready=ready or 0)
                 )

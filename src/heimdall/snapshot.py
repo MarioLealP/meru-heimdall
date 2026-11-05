@@ -1,9 +1,10 @@
 """What one look at the cluster tells Thoth (D100, D101), as a pure function of what was listed.
 
-- Every Deployment, StatefulSet and DaemonSet is a `workload` item, keyed `<cluster>/<namespace>/<kind>/<name>`. The
-  cluster scan owns no workload fields yet, so it only says "seen".
+- Every Deployment, StatefulSet, DaemonSet and CronJob is a `workload` item, keyed
+  `<cluster>/<namespace>/<kind>/<name>`. The cluster scan owns no workload fields yet, so it only says "seen".
 - A Meru app is seen when its own namespace (the one named like the app, labelled `meru.clockmost.com/app: <name>`)
-  has a Deployment with a ready pod. Only a confirm: Thoth refuses an app Shikigami never declared (D100).
+  has a Deployment with a ready pod, or a CronJob that isn't suspended (D117: Charon, Anubis). Only a confirm: Thoth
+  refuses an app Shikigami never declared (D100).
 - Every workload in a namespace labelled for an app - its build namespace too - is `part-of` that app (D55).
 """
 
@@ -12,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from heimdall.kube import Namespace, Workload
 
 APP_LABEL = "meru.clockmost.com/app"
+APP_KINDS = {"deployment", "cronjob"}  # what an app runs as; a StatefulSet alone is its database, not the app
 
 
 class Item(BaseModel):
@@ -63,9 +65,7 @@ def build(cluster: str, namespaces: list[Namespace], workloads: list[Workload]) 
     """Turn what was listed into the snapshot, following the rules at the top of this module."""
     app_of = {ns.name: ns.labels[APP_LABEL] for ns in namespaces if APP_LABEL in ns.labels}
     running = {
-        w.namespace
-        for w in workloads
-        if w.kind == "deployment" and w.ready > 0 and app_of.get(w.namespace) == w.namespace
+        w.namespace for w in workloads if w.kind in APP_KINDS and w.ready > 0 and app_of.get(w.namespace) == w.namespace
     }
     items = [Item(type="app", key=app, name=app) for app in sorted(running)]
     relations = []
