@@ -52,6 +52,11 @@ async def test_workloads_with_how_many_pods_are_ready(tmp_path: Path) -> None:
         "/apis/apps/v1/daemonsets": [
             {"metadata": {"name": "falco", "namespace": "falco"}, "status": {"numberReady": 1}}
         ],
+        "/apis/batch/v1/cronjobs": [
+            {"metadata": {"name": "charon", "namespace": "charon"}, "spec": {"suspend": False}, "status": {}},
+            {"metadata": {"name": "anubis", "namespace": "anubis"}, "spec": {}, "status": {}},  # suspend unset = false
+            {"metadata": {"name": "paused", "namespace": "paused"}, "spec": {"suspend": True}, "status": {}},
+        ],
     }
     found = await cluster(tmp_path, lambda request: page(lists[request.url.path])).workloads()
     assert found == [
@@ -59,6 +64,9 @@ async def test_workloads_with_how_many_pods_are_ready(tmp_path: Path) -> None:
         Workload(kind="deployment", namespace="kitsune", name="kitsune", ready=0),
         Workload(kind="statefulset", namespace="thoth", name="db", ready=1),
         Workload(kind="daemonset", namespace="falco", name="falco", ready=1),
+        Workload(kind="cronjob", namespace="charon", name="charon", ready=1),  # scheduled
+        Workload(kind="cronjob", namespace="anubis", name="anubis", ready=1),
+        Workload(kind="cronjob", namespace="paused", name="paused", ready=0),  # suspended
     ]
 
 
