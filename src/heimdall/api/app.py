@@ -1,4 +1,4 @@
-"""heimdall's HTTP side: only the probes. The scanning is the Temporal worker's (main.py)."""
+"""heimdall's HTTP side: only the probes. The scanning is the Temporal worker's (__main__.py)."""
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict

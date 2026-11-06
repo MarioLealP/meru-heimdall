@@ -6,7 +6,7 @@ whole if anything in it is wrong.
 
 import httpx2
 
-from heimdall.snapshot import Snapshot
+from heimdall.core.snapshot import Snapshot
 
 
 async def report(

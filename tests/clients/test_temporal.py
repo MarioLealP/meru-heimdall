@@ -2,8 +2,8 @@ from datetime import timedelta
 
 from temporalio.client import ScheduleActionStartWorkflow, ScheduleOverlapPolicy
 
+from heimdall.clients.temporal import schedule
 from heimdall.config import Settings
-from heimdall.temporal import schedule
 
 
 def test_one_scan_every_five_minutes_never_piling_up() -> None:

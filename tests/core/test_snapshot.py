@@ -1,5 +1,5 @@
-from heimdall.kube import Namespace, Workload
-from heimdall.snapshot import End, Relation, build
+from heimdall.clients.kube import Namespace, Workload
+from heimdall.core.snapshot import End, Relation, build
 
 LABEL = "meru.clockmost.com/app"
 NAMESPACES = [

@@ -9,13 +9,13 @@ import sentry_sdk
 import uvicorn
 from temporalio.worker import Worker
 
-from heimdall.activities import Activities
-from heimdall.app import make_app
+from heimdall.activities.cluster_scan import Activities
+from heimdall.api.app import make_app
+from heimdall.clients.kube import Cluster
+from heimdall.clients.temporal import connect, ensure_schedule, keep_token_fresh
+from heimdall.clients.tokens import TokenSource
 from heimdall.config import Settings
-from heimdall.kube import Cluster
-from heimdall.temporal import connect, ensure_schedule, keep_token_fresh
-from heimdall.tokens import TokenSource
-from heimdall.workflows import ClusterScan
+from heimdall.workflows.cluster_scan import ClusterScan
 
 
 async def run() -> None:

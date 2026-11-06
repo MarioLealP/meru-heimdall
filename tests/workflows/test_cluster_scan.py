@@ -11,11 +11,11 @@ from temporalio.exceptions import ApplicationError
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
-from heimdall.activities import Activities
-from heimdall.kube import Cluster
-from heimdall.snapshot import Item, Snapshot
-from heimdall.tokens import TokenSource
-from heimdall.workflows import ClusterScan
+from heimdall.activities.cluster_scan import Activities
+from heimdall.clients.kube import Cluster
+from heimdall.clients.tokens import TokenSource
+from heimdall.core.snapshot import Item, Snapshot
+from heimdall.workflows.cluster_scan import ClusterScan
 
 SNAP = Snapshot(items=[Item(type="app", key="echo", name="echo")], relations=[])
 

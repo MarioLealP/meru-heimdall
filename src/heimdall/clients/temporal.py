@@ -17,9 +17,9 @@ from temporalio.client import (
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.service import TLSConfig
 
+from heimdall.clients.tokens import EARLY, TokenSource
 from heimdall.config import Settings
-from heimdall.tokens import EARLY, TokenSource
-from heimdall.workflows import ClusterScan
+from heimdall.workflows.cluster_scan import ClusterScan
 
 REFRESH_EVERY = EARLY // 2  # look more often than the renewal window is long (see Shikigami's temporal.py)
 SCHEDULE_ID = "cluster-scan"

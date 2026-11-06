@@ -3,8 +3,8 @@ import json
 import httpx2
 import pytest
 
-from heimdall import thoth
-from heimdall.snapshot import End, Item, Relation, Snapshot
+from heimdall.clients import thoth
+from heimdall.core.snapshot import End, Item, Relation, Snapshot
 
 SNAP = Snapshot(
     items=[

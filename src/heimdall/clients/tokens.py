@@ -11,7 +11,7 @@ from pathlib import Path
 import httpx2
 from pydantic import BaseModel, ConfigDict, PrivateAttr, SecretStr
 
-from heimdall.incoming import Incoming
+from heimdall.clients.incoming import Incoming
 
 ASSERTION = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 EARLY = 60  # seconds before expiry when a token counts as used up

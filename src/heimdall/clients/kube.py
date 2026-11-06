@@ -10,7 +10,7 @@ from pathlib import Path
 import httpx2
 from pydantic import BaseModel, ConfigDict, Field
 
-from heimdall.incoming import Incoming
+from heimdall.clients.incoming import Incoming
 
 PAGE = 500
 

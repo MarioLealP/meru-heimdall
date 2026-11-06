@@ -11,5 +11,5 @@ COPY src/ src/
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app/src
 USER 10001
 EXPOSE 8080
-# The Temporal worker that runs the scans, with the probes beside it (src/heimdall/main.py).
-CMD [".venv/bin/python", "-m", "heimdall.main"]
+# The Temporal worker that runs the scans, with the probes beside it (src/heimdall/__main__.py).
+CMD [".venv/bin/python", "-m", "heimdall"]

@@ -4,7 +4,7 @@ from pathlib import Path
 import httpx2
 import pytest
 
-from heimdall.kube import Cluster, Namespace, Workload
+from heimdall.clients.kube import Cluster, Namespace, Workload
 
 
 def cluster(tmp_path: Path, handler) -> Cluster:
