@@ -10,7 +10,7 @@
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from heimdall.kube import Namespace, Workload
+from heimdall.clients.kube import Namespace, Workload
 
 APP_LABEL = "meru.clockmost.com/app"
 APP_KINDS = {"deployment", "cronjob"}  # what an app runs as; a StatefulSet alone is its database, not the app

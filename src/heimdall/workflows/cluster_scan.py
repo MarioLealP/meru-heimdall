@@ -9,8 +9,8 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
-    from heimdall.activities import Activities
-    from heimdall.snapshot import Snapshot
+    from heimdall.activities.cluster_scan import Activities
+    from heimdall.core.snapshot import Snapshot
 
 TIMEOUT = timedelta(minutes=1)  # per attempt
 # A few quick retries, then the run fails and the next scan starts fresh 5 minutes later.

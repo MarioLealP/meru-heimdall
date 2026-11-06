@@ -4,7 +4,7 @@ import httpx2
 from temporalio.client import Client
 from temporalio.service import RPCError, RPCStatusCode
 
-from heimdall.app import make_app
+from heimdall.api.app import make_app
 
 
 def client(check_health: AsyncMock) -> MagicMock:

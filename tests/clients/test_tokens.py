@@ -4,7 +4,7 @@ from pathlib import Path
 
 import httpx2
 
-from heimdall.tokens import ASSERTION, TokenSource
+from heimdall.clients.tokens import ASSERTION, TokenSource
 
 
 async def test_logs_in_with_the_pod_token_and_no_password(tmp_path: Path):

@@ -5,10 +5,10 @@ from pydantic import BaseModel, ConfigDict
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
-from heimdall import thoth
-from heimdall.kube import Cluster
-from heimdall.snapshot import Snapshot, build
-from heimdall.tokens import TokenSource
+from heimdall.clients import thoth
+from heimdall.clients.kube import Cluster
+from heimdall.clients.tokens import TokenSource
+from heimdall.core.snapshot import Snapshot, build
 
 
 class Activities(BaseModel):
