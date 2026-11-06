@@ -5,6 +5,7 @@ import logging
 import ssl
 
 import httpx2
+import sentry_sdk
 import uvicorn
 from temporalio.worker import Worker
 
@@ -57,6 +58,9 @@ async def run() -> None:
 
 def main() -> None:
     """Set up logging and run the pod's process."""
+    # Crash reports to GlitchTip (D125): SENTRY_DSN comes from nuwa-app's glitchtip.dsn; unset, the SDK stays off.
+    # No local variables or request bodies in a report - either can hold a secret.
+    sentry_sdk.init(include_local_variables=False, max_request_body_size="never")
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
     asyncio.run(run())
 
