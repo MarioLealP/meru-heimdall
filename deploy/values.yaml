@@ -32,3 +32,7 @@ resources:
 networkPolicy:
   enabled: true
   hostAddresses: [10.42.0.1/32]
+
+# Crash reports (D125): this app's GlitchTip project, which Shikigami made (it predates the marker's own DSN line).
+glitchtip:
+  dsn: https://79b0c05134444f269c6ada1e82bb897e@glitchtip.clockmost.com/1
