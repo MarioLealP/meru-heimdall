@@ -1,5 +1,5 @@
 from heimdall.clients.kube import Namespace, Workload
-from heimdall.core.snapshot import End, Relation, build
+from heimdall.core.snapshot import HOST_BINARY_LABEL, INSTALLED, End, Relation, build
 
 LABEL = "meru.clockmost.com/app"
 NAMESPACES = [
@@ -22,13 +22,14 @@ def test_an_app_is_seen_when_its_own_namespace_has_a_ready_deployment() -> None:
         ],
     )
     assert [(i.type, i.key) for i in snap.items] == [
-        ("app", "tanuki"),  # kitsune has nothing ready; the build namespace doesn't count as the app running
+        ("app", "tanuki"),  # kitsune has nothing ready (and isn't scaled to 0); the build namespace doesn't count
         ("workload", "clockmost/kitsune/deployment/kitsune"),
         ("workload", "clockmost/tanuki-build/deployment/runner"),
         ("workload", "clockmost/tanuki/deployment/tanuki"),
         ("workload", "clockmost/temporal/statefulset/temporal-db"),
     ]
-    assert all(i.attributes == {} for i in snap.items)  # the cluster scan owns no fields: it only says seen
+    assert [i.attributes for i in snap.items if i.type == "app"] == [{"running": True}]
+    assert all(i.attributes == {} for i in snap.items if i.type == "workload")  # workloads: only "seen"
 
 
 def test_workloads_in_an_apps_namespaces_are_part_of_it() -> None:
@@ -76,3 +77,40 @@ def test_a_scheduled_cronjob_makes_an_app_running() -> None:
         ("workload", "clockmost/charon/cronjob/charon"),
         ("workload", "clockmost/paused/cronjob/paused"),
     ]
+
+
+def test_an_app_scaled_to_zero_on_purpose_is_seen_not_running() -> None:
+    snap = build(
+        "clockmost",
+        [*NAMESPACES, Namespace(name="factorio", labels={LABEL: "factorio"})],
+        [
+            Workload(kind="deployment", namespace="factorio", name="factorio", ready=0, replicas=0),
+            Workload(kind="deployment", namespace="kitsune", name="kitsune", ready=0, replicas=1),  # broken, not off
+        ],
+    )
+    assert [(i.key, i.attributes) for i in snap.items if i.type == "app"] == [("factorio", {"running": False})]
+
+
+def test_a_running_pod_wins_over_a_parked_deployment_in_the_same_namespace() -> None:
+    snap = build(
+        "clockmost",
+        NAMESPACES,
+        [
+            Workload(kind="deployment", namespace="tanuki", name="tanuki", ready=1, replicas=1),
+            Workload(kind="deployment", namespace="tanuki", name="worker", ready=0, replicas=0),
+        ],
+    )
+    assert [(i.key, i.attributes) for i in snap.items if i.type == "app"] == [("tanuki", {"running": True})]
+
+
+def test_a_host_binary_is_seen_once_the_host_installed_it() -> None:
+    installed = {LABEL: "caddy", HOST_BINARY_LABEL: INSTALLED}
+    namespaces = [
+        Namespace(name="caddy-build", labels=installed),
+        Namespace(name="gitea-build", labels={LABEL: "gitea"}),  # not installed yet: stays planned
+        Namespace(name="vector-build", labels={LABEL: "vector", HOST_BINARY_LABEL: "pending"}),
+    ]
+    snap = build(
+        "clockmost", namespaces, [Workload(kind="deployment", namespace="gitea-build", name="sindri", ready=1)]
+    )
+    assert [(i.key, i.attributes) for i in snap.items if i.type == "app"] == [("caddy", {"running": None})]

@@ -60,8 +60,8 @@ async def test_workloads_with_how_many_pods_are_ready(tmp_path: Path) -> None:
     }
     found = await cluster(tmp_path, lambda request: page(lists[request.url.path])).workloads()
     assert found == [
-        Workload(kind="deployment", namespace="echo", name="echo", ready=1),
-        Workload(kind="deployment", namespace="kitsune", name="kitsune", ready=0),
+        Workload(kind="deployment", namespace="echo", name="echo", ready=1, replicas=1),
+        Workload(kind="deployment", namespace="kitsune", name="kitsune", ready=0, replicas=0),  # scaled to 0
         Workload(kind="statefulset", namespace="thoth", name="db", ready=1),
         Workload(kind="daemonset", namespace="falco", name="falco", ready=1),
         Workload(kind="cronjob", namespace="charon", name="charon", ready=1),  # scheduled

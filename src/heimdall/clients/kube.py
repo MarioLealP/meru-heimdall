@@ -68,7 +68,11 @@ class Workload(BaseModel):
     namespace: str
     name: str
     ready: int  # pods ready
+    # pods asked for (spec.replicas): 0 = scaled down on purpose. None: not said, or a kind without replicas
+    replicas: int | None = None
 
+
+SCALED = {"deployment", "statefulset"}  # the kinds whose spec.replicas says how many pods are wanted
 
 KINDS = {
     "deployment": "/apis/apps/v1/deployments",
@@ -124,7 +128,14 @@ class Cluster(BaseModel):
             for o in await self._list(path):
                 status = o.status or _Status()
                 ready = _ready(kind, o.spec or _Spec(), status)
+                spec = o.spec or _Spec()
                 found.append(
-                    Workload(kind=kind, namespace=o.metadata.namespace or "", name=o.metadata.name, ready=ready or 0)
+                    Workload(
+                        kind=kind,
+                        namespace=o.metadata.namespace or "",
+                        name=o.metadata.name,
+                        ready=ready or 0,
+                        replicas=spec.replicas if kind in SCALED else None,
+                    )
                 )
         return found
