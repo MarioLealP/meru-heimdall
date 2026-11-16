@@ -7,8 +7,8 @@ name: heimdall
 owner: mario
 image:
   repository: zot.clockmost.com/meru/heimdall
-  digest: sha256:d626b1ca5dd0f597b517f1991a228fb646a4ac9eca6086870d49032d81a840a7
-  tag: "24a6599172e6"
+  digest: sha256:4cbc057dad3e92e626666362f7af5f614ecb537d0f7369b4b22dbc5d71ea90ee
+  tag: "cde708f10ed6"
 port: 8080
 heartbeat:
   readyPath: /ready # Temporal answers over mTLS
